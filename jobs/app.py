@@ -1,6 +1,42 @@
-from flask import Flask, render_template
+import sqlite3
+# g provides access to the database throughout the application
+from flask import Flask, g, render_template
 
+PATH = 'db/jobs.sqlite'
 app = Flask(__name__)
+
+
+def open_connection():
+    connection = getattr(g, '_connection', None)
+    if connection is None:
+        connection = g._connection = sqlite3.connect(PATH)
+
+    # Row Factory makes it easier to access data. All rows returned from the
+    # database will be named tuples.
+    connection.row_factory = sqlite3.Row
+    return connection
+
+
+# This function makes it easier to query the database
+def execute_sql(sql, values=(), commit=False, single=False):
+    connection = open_connection()
+    cursor = connection.execute(sql, values)
+    if commit is True:
+        results = connection.commit()
+    else:
+        results = cursor.fetchone() if single else cursor.fetchall()
+
+    cursor.close()
+    return results
+
+
+# This function ensures that the database connection is closed when the
+# app_context is torn down
+@app.teardown_appcontext
+def close_connection(exception):
+    connection = getattr(g, '_connection', None)
+    if connection is not None:
+        connection.close()
 
 
 @app.route('/')
