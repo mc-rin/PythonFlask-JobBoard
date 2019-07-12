@@ -70,7 +70,7 @@ def employer(employer_id):
                        'job.employer_id WHERE employer.id = ?', [employer_id])
     # Get all reviews for the employer
     reviews = execute_sql('SELECT review, rating, title, date, status FROM '
-                          'review JOIN employer ON employer_id = '
+                          'review JOIN employer ON employer.id = '
                           'review.employer_id WHERE employer.id = ?',
                           [employer_id])
     return render_template('employer.html', employer=employer, jobs=jobs, reviews=reviews)
